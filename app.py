@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.config["JSON_AS_ASCII"] = False
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-mydb = mysql.connector.connect(  # 連線資料庫
+mydb = mysql.connector.connect(
     host='localhost',
     port='3306',
     user='root',
