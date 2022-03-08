@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.config["JSON_AS_ASCII"] = False
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-mydb = mysql.connector.connect(
+mydb = mysql.connector.connect(  # 連線資料庫
     host='localhost',
     port='3306',
     user='root',
@@ -45,12 +45,13 @@ def attractions():
         keyword = request.args.get("keyword")
         if keyword != None:
             pageRequest = int(request.args.get("page", 0))
-
+            # print(keyword)
             getResultId = "SELECT id FROM spots WHERE stitle LIKE '%"+keyword+"%'"
             mycursor.execute(getResultId)
             resultId = mycursor.fetchall()
-
+            # print(resultId)
             keyDataCount = len(resultId)  # 有關鍵字的數量
+            # print(keyDataCount)
 
             getAttractionssql = "SELECT id,stitle,CAT2,xbody,address,info,MRT,latitude,longitude FROM spots WHERE id=%s"
 
@@ -60,11 +61,13 @@ def attractions():
                 attractionsData["nextPage"] = None
 
             attractionsData["data"] = []
-            for keyId in resultId:
-                mycursor.execute(getAttractionssql, keyId)
-                AttractionData = mycursor.fetchall()
-                if AttractionData == []:  # 沒抓到資料就跳出
+            for i in range(pageRequest*12, ((pageRequest+1)*12)):
+                if i == keyDataCount:
                     break
+                # print(i)
+                mycursor.execute(getAttractionssql, resultId[i])
+                AttractionData = mycursor.fetchall()
+                # print(AttractionData)
 
                 singleAttraction = {}
                 singleAttraction["id"] = AttractionData[0][0]
@@ -76,46 +79,53 @@ def attractions():
                 singleAttraction["mrt"] = AttractionData[0][6]
                 singleAttraction["latitude"] = AttractionData[0][7]
                 singleAttraction["longitude"] = AttractionData[0][8]
+                # print(singleAttraction)
 
                 singleAttraction["images"] = []
                 mycursor.execute(
                     "SELECT count(*) FROM information_schema.columns WHERE table_name ='spots'")
                 totalColumn = mycursor.fetchone()[0]
-                for j in range(0, totalColumn-21):
+                for j in range(0, totalColumn-59):
                     selectFile = "SELECT file_" + \
-                        str(j+1)+" FROM spots WHERE id="+str(keyId[0])
+                        str(j+1)+" FROM spots WHERE id="+str(resultId[i][0])
                     mycursor.execute(selectFile)
                     fileData = mycursor.fetchall()
                     if fileData == [(None,)]:
                         break
                     singleAttraction["images"].append(fileData[0][0])
-
+                # print(singleAttraction["images"])
                 attractionsData["data"].append(singleAttraction)
-
+            # print(attractionsData["data"])
+            # print(attractionsData)
             return jsonify(attractionsData)
 
         else:
             getAttractionssql = "SELECT id,stitle,CAT2,xbody,address,info,MRT,latitude,longitude FROM spots WHERE id=%s"
-
             pageRequest = int(request.args.get("page", 0))  # 從前端取得頁數(數字)
-
+            # pageRequest = 0
+            # print(pageRequest)
             attractionsData = {}
 
             attractionsData["nextPage"] = pageRequest+1  # 檢查是否有下一頁 沒有就取代
-
             mycursor.execute(getAttractionssql, (str((pageRequest+1)*12+1),))
             checkPage = mycursor.fetchall()
-
             if checkPage == []:
                 attractionsData["nextPage"] = None
 
+            mycursor.execute("SELECT COUNT(id) FROM spots")
+            getIdNumber = mycursor.fetchall()[0][0]  # 58
+
             attractionsData["data"] = []
-            for i in range(pageRequest*12, (pageRequest+1)*12):
-                mycursor.execute(getAttractionssql, (i+1,))
-                AttractionData = mycursor.fetchall()
-                if AttractionData == []:  # 沒抓到資料就跳出
+            for i in range(pageRequest*12, ((pageRequest+1)*12)):
+                if i == getIdNumber:
                     break
 
+                # print(i)
+                mycursor.execute(getAttractionssql, (i+1,))
+                AttractionData = mycursor.fetchall()
+                # print(AttractionData)
+
+                # print(i)
                 singleAttraction = {}
                 singleAttraction["id"] = AttractionData[0][0]
                 singleAttraction["name"] = AttractionData[0][1]
@@ -126,34 +136,40 @@ def attractions():
                 singleAttraction["mrt"] = AttractionData[0][6]
                 singleAttraction["latitude"] = AttractionData[0][7]
                 singleAttraction["longitude"] = AttractionData[0][8]
+                # print(singleAttraction)
 
                 singleAttraction["images"] = []
                 mycursor.execute(
                     "SELECT count(*) FROM information_schema.columns WHERE table_name ='spots'")
                 totalColumn = mycursor.fetchone()[0]
-                for j in range(0, totalColumn-21):
+                # print(totalColumn)
+                for j in range(0, totalColumn-59):
                     selectFile = "SELECT file_" + \
-                        str(j+1)+" FROM spots WHERE id="+str(i+1)
-                    mycursor.execute(selectFile)
+                        str(j+1)+" FROM spots WHERE id=%s"
+                    mycursor.execute(selectFile, (str(i+1),))
                     fileData = mycursor.fetchall()
-                    if fileData == [(None,)]:
+                    # print(fileData)
+                    if (fileData == [(None,)]):
                         break
                     singleAttraction["images"].append(fileData[0][0])
-
+                    # print(j)
+                # print(singleAttraction["images"])
                 attractionsData["data"].append(singleAttraction)
-
+            # print(attractionsData["data"])
+            # print(attractionsData)
             return jsonify(attractionsData)
 
     except:
         check = {}
         check["error"] = True
-        check["massage"] = request.args.get("message", "伺服器內部錯誤")
+        check["massage"] = request.args.get("message", "")
         return jsonify(check)
 
 
 @app.route("/api/attraction/<int:spot_id>")
 def attractionsId(spot_id):
     try:
+
         getAttractionssql = "SELECT id,stitle,CAT2,xbody,address,info,MRT,latitude,longitude FROM spots WHERE id=%s"
         attractionsData = {}
 
@@ -175,7 +191,7 @@ def attractionsId(spot_id):
             mycursor.execute(
                 "SELECT count(*) FROM information_schema.columns WHERE table_name ='spots'")
             totalColumn = mycursor.fetchone()[0]
-            for j in range(0, totalColumn-21):
+            for j in range(0, totalColumn-59):
                 selectFile = "SELECT file_" + \
                     str(j+1)+" FROM spots WHERE id="+str(spot_id)
                 mycursor.execute(selectFile)
@@ -189,12 +205,12 @@ def attractionsId(spot_id):
         else:
             checknumber = {}
             checknumber["error"] = True
-            checknumber["massage"] = request.args.get("message", "景點編號不正確")
+            checknumber["massage"] = request.args.get("message", "")
             return jsonify(checknumber)
     except:
         check = {}
         check["error"] = True
-        check["massage"] = request.args.get("message", "伺服器內部錯誤")
+        check["massage"] = request.args.get("message", "")
         return jsonify(check)
 
 

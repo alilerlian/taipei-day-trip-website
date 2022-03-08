@@ -64,8 +64,8 @@ for i in range(0, len(resultList)):
 
     mycursor.execute(
         "SELECT count(*) FROM information_schema.columns WHERE table_name ='spots'")
-    totalColumn = mycursor.fetchone()[0]  # 欄位總數
-    if totalColumn-21 > len(files):
+    totalColumn = mycursor.fetchone()[0]  # 初始欄位總數 59
+    if totalColumn-59 > len(files):
         for k in range(0, len(files)):
             fileNum = k+1
             updateFileSql = "UPDATE spots SET "+"file_" + \
@@ -73,7 +73,7 @@ for i in range(0, len(resultList)):
             mycursor.execute(updateFileSql, (files[k],))
             mydb.commit()
 
-    elif totalColumn-21 == 0:
+    elif totalColumn-59 == 0:
         for k in range(0, len(files)):
             fileNum = k+1
             addCloumnSql = "ALTER TABLE spots ADD " + \
@@ -84,14 +84,14 @@ for i in range(0, len(resultList)):
             mycursor.execute(updateFileSql, (files[k],))
             mydb.commit()
 
-    elif totalColumn-21 < len(files):
-        for k in range(0, totalColumn-21):
+    elif totalColumn-59 < len(files):
+        for k in range(0, totalColumn-59):
             fileNum = k+1
             updateFileSql = "UPDATE spots SET "+"file_" + \
                 str(fileNum)+"=%s WHERE id="+str(id)
             mycursor.execute(updateFileSql, (files[k],))
             mydb.commit()
-        for l in range(totalColumn-21, len(files)):
+        for l in range(totalColumn-59, len(files)):
             fileNum = l+1
             addCloumnSql = "ALTER TABLE spots ADD " + \
                 "file_"+str(fileNum)+" VARCHAR(255)"
