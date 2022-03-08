@@ -85,7 +85,7 @@ def attractions():
                 mycursor.execute(
                     "SELECT count(*) FROM information_schema.columns WHERE table_name ='spots'")
                 totalColumn = mycursor.fetchone()[0]
-                for j in range(0, totalColumn-59):
+                for j in range(0, totalColumn-21):
                     selectFile = "SELECT file_" + \
                         str(j+1)+" FROM spots WHERE id="+str(resultId[i][0])
                     mycursor.execute(selectFile)
@@ -113,7 +113,7 @@ def attractions():
                 attractionsData["nextPage"] = None
 
             mycursor.execute("SELECT COUNT(id) FROM spots")
-            getIdNumber = mycursor.fetchall()[0][0]  # 58
+            getIdNumber = mycursor.fetchall()[0][0]
 
             attractionsData["data"] = []
             for i in range(pageRequest*12, ((pageRequest+1)*12)):
@@ -143,7 +143,7 @@ def attractions():
                     "SELECT count(*) FROM information_schema.columns WHERE table_name ='spots'")
                 totalColumn = mycursor.fetchone()[0]
                 # print(totalColumn)
-                for j in range(0, totalColumn-59):
+                for j in range(0, totalColumn-21):
                     selectFile = "SELECT file_" + \
                         str(j+1)+" FROM spots WHERE id=%s"
                     mycursor.execute(selectFile, (str(i+1),))
@@ -191,7 +191,7 @@ def attractionsId(spot_id):
             mycursor.execute(
                 "SELECT count(*) FROM information_schema.columns WHERE table_name ='spots'")
             totalColumn = mycursor.fetchone()[0]
-            for j in range(0, totalColumn-59):
+            for j in range(0, totalColumn-21):
                 selectFile = "SELECT file_" + \
                     str(j+1)+" FROM spots WHERE id="+str(spot_id)
                 mycursor.execute(selectFile)
