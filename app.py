@@ -41,7 +41,6 @@ def thankyou():
 
 @app.route("/api/attractions")
 def attractions():
-    print("run attractions")
     try:
         keyword = request.args.get("keyword")
         if keyword != None:
@@ -169,7 +168,6 @@ def attractions():
 
 @app.route("/api/attraction/<int:spot_id>")
 def attractionsId(spot_id):
-    print("run attractionsId")
     try:
 
         getAttractionssql = "SELECT id,stitle,CAT2,xbody,address,info,MRT,latitude,longitude FROM spots WHERE id=%s"
