@@ -33,30 +33,18 @@ for i in range(0, len(resultList)):
     spot = resultList[i]
 
     id = i+1
-    info = spot["info"]
-    stitle = spot["stitle"]
-    xpostDate = spot["xpostDate"]
-    longitude = spot["longitude"]
-    REF_WP = spot["REF_WP"]
-    avBegin = spot["avBegin"]
-    langinfo = spot["langinfo"]
-    MRT = spot["MRT"]
-    SERIAL_NO = spot["SERIAL_NO"]
-    RowNumber = spot["RowNumber"]
-    CAT1 = spot["CAT1"]
-    CAT2 = spot["CAT2"]
-    MEMO_TIME = spot["MEMO_TIME"]
-    POI = spot["POI"]
-    idpt = spot["idpt"]
-    latitude = spot["latitude"]
-    xbody = spot["xbody"]
-    _id = spot["_id"]
-    avEnd = spot["avEnd"]
+    name = spot["stitle"]
+    category = spot["CAT2"]
+    description = spot["xbody"]
     address = spot["address"]
+    transport = spot["info"]
+    mrt = spot["MRT"]
+    latitude = spot["latitude"]
+    longitude = spot["longitude"]
 
-    insertData = (id, info, stitle, xpostDate, longitude, REF_WP, avBegin, langinfo,
-                  MRT, SERIAL_NO, RowNumber, CAT1, CAT2, MEMO_TIME, POI, idpt, latitude, xbody, _id, avEnd, address)
-    insertsql = "INSERT INTO spots (id, info,stitle,xpostDate,longitude,REF_WP,avBegin,langinfo,MRT,SERIAL_NO,RowNumber,CAT1,CAT2,MEMO_TIME,POI,idpt,latitude,xbody,_id ,avEnd,address) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+    insertData = (id, name, category, description, address,
+                  transport, mrt, latitude, longitude)
+    insertsql = "INSERT INTO spots (id,name,category,description,address,transport,mrt,latitude,longitude) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
     mycursor.execute(insertsql, insertData)
     mydb.commit()
 
@@ -64,8 +52,8 @@ for i in range(0, len(resultList)):
 
     mycursor.execute(
         "SELECT count(*) FROM information_schema.columns WHERE table_name ='spots'")
-    totalColumn = mycursor.fetchone()[0]  # 欄位總數
-    if totalColumn-21 > len(files):
+    totalColumn = mycursor.fetchone()[0]  # 初始欄位總數 47
+    if totalColumn-47 > len(files):
         for k in range(0, len(files)):
             fileNum = k+1
             updateFileSql = "UPDATE spots SET "+"file_" + \
@@ -73,7 +61,7 @@ for i in range(0, len(resultList)):
             mycursor.execute(updateFileSql, (files[k],))
             mydb.commit()
 
-    elif totalColumn-21 == 0:
+    elif totalColumn-47 == 0:
         for k in range(0, len(files)):
             fileNum = k+1
             addCloumnSql = "ALTER TABLE spots ADD " + \
@@ -84,14 +72,14 @@ for i in range(0, len(resultList)):
             mycursor.execute(updateFileSql, (files[k],))
             mydb.commit()
 
-    elif totalColumn-21 < len(files):
-        for k in range(0, totalColumn-21):
+    elif totalColumn-47 < len(files):
+        for k in range(0, totalColumn-47):
             fileNum = k+1
             updateFileSql = "UPDATE spots SET "+"file_" + \
                 str(fileNum)+"=%s WHERE id="+str(id)
             mycursor.execute(updateFileSql, (files[k],))
             mydb.commit()
-        for l in range(totalColumn-21, len(files)):
+        for l in range(totalColumn-47, len(files)):
             fileNum = l+1
             addCloumnSql = "ALTER TABLE spots ADD " + \
                 "file_"+str(fileNum)+" VARCHAR(255)"

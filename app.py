@@ -45,103 +45,102 @@ def attractions():
         keyword = request.args.get("keyword")
         if keyword != None:
             pageRequest = int(request.args.get("page", 0))
-
-            getResultId = "SELECT id FROM spots WHERE stitle LIKE '%"+keyword+"%'"
+            # print(keyword)
+            getResultId = "SELECT count(id) FROM spots WHERE name LIKE '%" + \
+                keyword+"%'"
             mycursor.execute(getResultId)
-            resultId = mycursor.fetchall()
-
-            keyDataCount = len(resultId)  # 有關鍵字的數量
-
-            getAttractionssql = "SELECT id,stitle,CAT2,xbody,address,info,MRT,latitude,longitude FROM spots WHERE id=%s"
+            keyDataCount = mycursor.fetchall()[0][0]  # 有關鍵字的數量
+            # print(resultId)
+            # keyDataCount = len(resultId)
+            print(keyDataCount)
 
             attractionsData = {}
             attractionsData["nextPage"] = pageRequest+1
             if keyDataCount <= (pageRequest+1)*12:  # 檢查是否有下一頁 沒有就取代
                 attractionsData["nextPage"] = None
+            print(attractionsData["nextPage"])
 
             attractionsData["data"] = []
-            for keyId in resultId:
-                mycursor.execute(getAttractionssql, keyId)
-                AttractionData = mycursor.fetchall()
-                if AttractionData == []:  # 沒抓到資料就跳出
-                    break
+            skipdata = str(pageRequest*12)
+            print(skipdata)
+            getAttractionssql = "SELECT * FROM spots WHERE name LIKE '%" + \
+                keyword+"%' ORDER BY id limit 12 offset " + skipdata
+            # print(getAttractionssql)
 
+            mycursor.execute(getAttractionssql)
+            AttractionData = mycursor.fetchall()
+            # print(AttractionData)
+
+            for i in range(0, len(AttractionData)):
                 singleAttraction = {}
-                singleAttraction["id"] = AttractionData[0][0]
-                singleAttraction["name"] = AttractionData[0][1]
-                singleAttraction["category"] = AttractionData[0][2]
-                singleAttraction["description"] = AttractionData[0][3]
-                singleAttraction["address"] = AttractionData[0][4]
-                singleAttraction["transport"] = AttractionData[0][5]
-                singleAttraction["mrt"] = AttractionData[0][6]
-                singleAttraction["latitude"] = AttractionData[0][7]
-                singleAttraction["longitude"] = AttractionData[0][8]
+                singleAttraction["id"] = AttractionData[i][0]
+                singleAttraction["name"] = AttractionData[i][1]
+                singleAttraction["category"] = AttractionData[i][2]
+                singleAttraction["description"] = AttractionData[i][3]
+                singleAttraction["address"] = AttractionData[i][4]
+                singleAttraction["transport"] = AttractionData[i][5]
+                singleAttraction["mrt"] = AttractionData[i][6]
+                singleAttraction["latitude"] = AttractionData[i][7]
+                singleAttraction["longitude"] = AttractionData[i][8]
+                # print(singleAttraction["id"])
 
                 singleAttraction["images"] = []
-                mycursor.execute(
-                    "SELECT count(*) FROM information_schema.columns WHERE table_name ='spots'")
-                totalColumn = mycursor.fetchone()[0]
-                for j in range(0, totalColumn-21):
-                    selectFile = "SELECT file_" + \
-                        str(j+1)+" FROM spots WHERE id="+str(keyId[0])
-                    mycursor.execute(selectFile)
-                    fileData = mycursor.fetchall()
-                    if fileData == [(None,)]:
+                for j in range(9, len(AttractionData[i])+1):
+                    if AttractionData[i][j] == None:
                         break
-                    singleAttraction["images"].append(fileData[0][0])
+                    singleAttraction["images"].append(AttractionData[i][j])
 
+                # print(singleAttraction["images"])
                 attractionsData["data"].append(singleAttraction)
-
+            # print(attractionsData)
             return jsonify(attractionsData)
 
         else:
-            getAttractionssql = "SELECT id,stitle,CAT2,xbody,address,info,MRT,latitude,longitude FROM spots WHERE id=%s"
-
+            getResultId = "SELECT count(id) FROM spots"
             pageRequest = int(request.args.get("page", 0))  # 從前端取得頁數(數字)
+            # pageRequest = 0
+            # print(pageRequest)
+            mycursor.execute(getResultId)
+            DataCount = mycursor.fetchall()[0][0]
 
             attractionsData = {}
-
-            attractionsData["nextPage"] = pageRequest+1  # 檢查是否有下一頁 沒有就取代
-
-            mycursor.execute(getAttractionssql, (str((pageRequest+1)*12+1),))
-            checkPage = mycursor.fetchall()
-
-            if checkPage == []:
+            attractionsData["nextPage"] = pageRequest+1  # 下一頁
+            if DataCount <= (pageRequest+1)*12:  # 檢查是否有下一頁 沒有就取代
                 attractionsData["nextPage"] = None
+            print(attractionsData["nextPage"])
 
-            attractionsData["data"] = []
-            for i in range(pageRequest*12, (pageRequest+1)*12):
-                mycursor.execute(getAttractionssql, (i+1,))
-                AttractionData = mycursor.fetchall()
-                if AttractionData == []:  # 沒抓到資料就跳出
-                    break
+            attractionsData["data"] = []  # 景點資料
+            skipdata = str(pageRequest*12)
+            print(skipdata)
+            getAttractionssql = "SELECT * FROM spots ORDER BY id limit 12 offset " + skipdata
+            # print(getAttractionssql)
 
+            mycursor.execute(getAttractionssql)
+            AttractionData = mycursor.fetchall()
+            # print(AttractionData)
+
+            for i in range(0, len(AttractionData)):
                 singleAttraction = {}
-                singleAttraction["id"] = AttractionData[0][0]
-                singleAttraction["name"] = AttractionData[0][1]
-                singleAttraction["category"] = AttractionData[0][2]
-                singleAttraction["description"] = AttractionData[0][3]
-                singleAttraction["address"] = AttractionData[0][4]
-                singleAttraction["transport"] = AttractionData[0][5]
-                singleAttraction["mrt"] = AttractionData[0][6]
-                singleAttraction["latitude"] = AttractionData[0][7]
-                singleAttraction["longitude"] = AttractionData[0][8]
+                singleAttraction["id"] = AttractionData[i][0]
+                singleAttraction["name"] = AttractionData[i][1]
+                singleAttraction["category"] = AttractionData[i][2]
+                singleAttraction["description"] = AttractionData[i][3]
+                singleAttraction["address"] = AttractionData[i][4]
+                singleAttraction["transport"] = AttractionData[i][5]
+                singleAttraction["mrt"] = AttractionData[i][6]
+                singleAttraction["latitude"] = AttractionData[i][7]
+                singleAttraction["longitude"] = AttractionData[i][8]
+                # print(singleAttraction["id"])
 
                 singleAttraction["images"] = []
-                mycursor.execute(
-                    "SELECT count(*) FROM information_schema.columns WHERE table_name ='spots'")
-                totalColumn = mycursor.fetchone()[0]
-                for j in range(0, totalColumn-21):
-                    selectFile = "SELECT file_" + \
-                        str(j+1)+" FROM spots WHERE id="+str(i+1)
-                    mycursor.execute(selectFile)
-                    fileData = mycursor.fetchall()
-                    if fileData == [(None,)]:
+                for j in range(9, len(AttractionData[i])):
+                    if AttractionData[i][j] == None:
                         break
-                    singleAttraction["images"].append(fileData[0][0])
+                    singleAttraction["images"].append(AttractionData[i][j])
 
+                # print(singleAttraction["images"])
                 attractionsData["data"].append(singleAttraction)
-
+            # print(attractionsData)
             return jsonify(attractionsData)
 
     except:
@@ -154,7 +153,7 @@ def attractions():
 @app.route("/api/attraction/<int:spot_id>")
 def attractionsId(spot_id):
     try:
-        getAttractionssql = "SELECT id,stitle,CAT2,xbody,address,info,MRT,latitude,longitude FROM spots WHERE id=%s"
+        getAttractionssql = "SELECT * FROM spots WHERE id=%s"
         attractionsData = {}
 
         mycursor.execute(getAttractionssql, (spot_id,))
@@ -172,17 +171,10 @@ def attractionsId(spot_id):
             singleAttraction["longitude"] = AttractionData[0][8]
 
             singleAttraction["images"] = []
-            mycursor.execute(
-                "SELECT count(*) FROM information_schema.columns WHERE table_name ='spots'")
-            totalColumn = mycursor.fetchone()[0]
-            for j in range(0, totalColumn-21):
-                selectFile = "SELECT file_" + \
-                    str(j+1)+" FROM spots WHERE id="+str(spot_id)
-                mycursor.execute(selectFile)
-                fileData = mycursor.fetchall()
-                if fileData == [(None,)]:
+            for j in range(9, len(AttractionData[0])):
+                if AttractionData[0][j] == None:
                     break
-                singleAttraction["images"].append(fileData[0][0])
+                singleAttraction["images"].append(AttractionData[0][j])
             attractionsData["data"] = singleAttraction
 
             return jsonify(attractionsData)
@@ -198,4 +190,4 @@ def attractionsId(spot_id):
         return jsonify(check)
 
 
-app.run(port=3000)
+app.run(host='0.0.0.0', port=3000)
